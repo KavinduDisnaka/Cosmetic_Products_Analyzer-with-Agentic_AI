@@ -7,6 +7,7 @@ from phi.agent import Agent
 from phi.model.openai import OpenAIChat
 from phi.tools.duckduckgo import DuckDuckGo
 from dotenv import load_dotenv
+from pywin.framework.toolmenu import tools
 
 from constant import SYSTEM_PROMPT1, INSTRUCTIONS1, INSTRUCTIONS2
 
@@ -27,6 +28,11 @@ def resize_image_for_display(image_file):
     buffered = BytesIO()
     img.save(buffered, format="PNG")
     return buffered.getvalue()
+
+def extract_text_from_image(image):
+    img = Image.open(image)
+    text = pytesseract.image_to_string(img)
+    return text
 
 
 @st.cache_resource
@@ -55,12 +61,6 @@ def get_health_assessor():
     )
 
 
-def extract_text_from_image(image):
-    img = Image.open(image)
-    text = pytesseract.image_to_string(img)
-    return text
-
-
 def collaborative_analysis(image):
     extracted_text = extract_text_from_image(image)
     ingredient_analyzer = get_ingredient_analyzer()
@@ -84,6 +84,8 @@ def collaborative_analysis(image):
     with st.spinner('Phase 2: Performing comprehensive health assessment...'):
         health_prompt = f"""
         Based on the Ingredient Analyzer's detailed report: {ingredient_analysis.content}
+        
+        Please do a research what is the health impact of {ingredient_analysis.content} for humans from using {tools}
 
         Please provide a comprehensive health assessment following your instructions.
         Make sure to include:
